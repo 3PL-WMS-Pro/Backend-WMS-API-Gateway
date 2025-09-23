@@ -9,26 +9,43 @@ spring:
   cloud:
     gateway:
       routes:
-        - id: tenant-service
-          uri: lb://TENANT-SERVICE
+        # Tenant Service Routes
+        - id: tenant-service-tenants
+          uri: lb://WMS-TENANT-SERVICE
           predicates:
-            - Path=/api/tenants/**
+            - Path=/api/v1/tenants/**
+        - id: tenant-service-roles
+          uri: lb://WMS-TENANT-SERVICE
+          predicates:
+            - Path=/api/v1/roles/**
+        - id: tenant-service-teams
+          uri: lb://WMS-TENANT-SERVICE
+          predicates:
+            - Path=/api/v1/teams/**
+        - id: tenant-service-users
+          uri: lb://WMS-TENANT-SERVICE
+          predicates:
+            - Path=/api/v1/users/**
+        # Warehouse Service Routes
         - id: warehouse-service
-          uri: lb://WAREHOUSE-SERVICE
+          uri: lb://WMS-WAREHOUSE-SERVICE
           predicates:
-            - Path=/api/warehouses/**
+            - Path=/api/v1/warehouses/**
+        # Product Service Routes
         - id: product-service
-          uri: lb://PRODUCT-SERVICE
+          uri: lb://WMS-PRODUCT-SERVICE
           predicates:
-            - Path=/api/products/**
+            - Path=/api/v1/products/**
+        # Inventory Service Routes
         - id: inventory-service
-          uri: lb://INVENTORY-SERVICE
+          uri: lb://WMS-INVENTORY-SERVICE
           predicates:
-            - Path=/api/inventory/**
+            - Path=/api/v1/inventory/**
+        # Order Service Routes
         - id: order-service
-          uri: lb://ORDER-SERVICE
+          uri: lb://WMS-ORDER-SERVICE
           predicates:
-            - Path=/api/orders/**
+            - Path=/api/v1/orders/**
 
 eureka:
   client:
