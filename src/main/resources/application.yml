@@ -14,18 +14,14 @@ spring:
           uri: lb://WMS-TENANT-SERVICE
           predicates:
             - Path=/api/v1/tenants/**
-        - id: tenant-service-roles
+        - id: tenant-service-tenant-settings
           uri: lb://WMS-TENANT-SERVICE
           predicates:
-            - Path=/api/v1/roles/**
-        - id: tenant-service-teams
+            - Path=/api/v1/tenant-settings/**
+        - id: tenant-service-user-role-mappings
           uri: lb://WMS-TENANT-SERVICE
           predicates:
-            - Path=/api/v1/teams/**
-        - id: tenant-service-users
-          uri: lb://WMS-TENANT-SERVICE
-          predicates:
-            - Path=/api/v1/users/**
+            - Path=/api/v1/user-role-mappings/**
         # Warehouse Service Routes
         - id: warehouse-service
           uri: lb://WMS-WAREHOUSE-SERVICE
