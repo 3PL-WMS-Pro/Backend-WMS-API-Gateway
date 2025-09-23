@@ -4,12 +4,10 @@ server:
 spring:
   application:
     name: wms-api-gateway
+  main:
+    web-application-type: reactive
   cloud:
     gateway:
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
       routes:
         - id: tenant-service
           uri: lb://TENANT-SERVICE
@@ -31,15 +29,6 @@ spring:
           uri: lb://ORDER-SERVICE
           predicates:
             - Path=/api/orders/**
-      default-filters:
-        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
-      globalcors:
-        cors-configurations:
-          '[/**]':
-            allowed-origins: "*"
-            allowed-methods: "*"
-            allowed-headers: "*"
-            allow-credentials: false
 
 eureka:
   client:

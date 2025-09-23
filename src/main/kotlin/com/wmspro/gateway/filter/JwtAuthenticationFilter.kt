@@ -1,7 +1,6 @@
 package com.wmspro.gateway.filter
 
-import com.wmspro.common.jwt.JwtTokenExtractor
-import com.wmspro.common.jwt.JwtValidator
+import com.wmspro.gateway.jwt.JwtService
 import org.springframework.cloud.gateway.filter.GatewayFilter
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory
 import org.springframework.http.HttpHeaders
@@ -13,8 +12,7 @@ import reactor.core.publisher.Mono
 
 @Component
 class JwtAuthenticationFilter(
-    private val jwtTokenExtractor: JwtTokenExtractor,
-    private val jwtValidator: JwtValidator
+    private val jwtService: JwtService
 ) : AbstractGatewayFilterFactory<JwtAuthenticationFilter.Config>(Config::class.java) {
     
     override fun apply(config: Config): GatewayFilter {
@@ -32,23 +30,22 @@ class JwtAuthenticationFilter(
             }
             
             try {
-                // Use common library's JWT utilities
                 val token = authHeader.substring(7)
                 
-                if (!jwtValidator.isTokenValid(token)) {
+                if (!jwtService.validateToken(token)) {
                     return@GatewayFilter onError(exchange, "Invalid or expired token", HttpStatus.UNAUTHORIZED)
                 }
                 
-                // Extract claims using common library
-                val username = jwtTokenExtractor.extractUsername(token)
-                val userType = jwtTokenExtractor.extractUserType(token)
-                val departmentId = jwtTokenExtractor.extractDepartment(token)
-                val tenantId = jwtTokenExtractor.extractTenantId(token)
+                // Extract claims
+                val username = jwtService.extractUsername(token)
+                val userType = jwtService.extractClaim(token, "userTypeId")?.toString()
+                val departmentId = jwtService.extractClaim(token, "departmentId")?.toString()
+                val tenantId = jwtService.extractClaim(token, "clientId")?.toString()
                 
                 val mutatedRequest = exchange.request.mutate()
                     .header("X-User-Id", username ?: "")
-                    .header("X-User-Type", userType?.toString() ?: "")
-                    .header("X-Department-Id", departmentId?.toString() ?: "")
+                    .header("X-User-Type", userType ?: "")
+                    .header("X-Department-Id", departmentId ?: "")
                     .header("X-Tenant-Id", tenantId ?: "")
                     .header("Authorization", authHeader) // Pass the token to downstream services
                     .build()
