@@ -49,3 +49,10 @@ eureka:
       defaultZone: http://localhost:6000/eureka/
   instance:
     prefer-ip-address: true
+
+logging:
+  level:
+    com.wmspro.gateway: DEBUG
+    org.springframework.cloud.gateway: INFO
+    reactor.netty.http.client: WARN
+    reactor.netty.http.server: INFO
