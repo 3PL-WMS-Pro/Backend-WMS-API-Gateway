@@ -12,44 +12,58 @@ class GatewayConfig(private val jwtFilter: JwtAuthenticationFilter) {
     @Bean
     fun customRouteLocator(builder: RouteLocatorBuilder): RouteLocator {
         return builder.routes()
-            .route("tenant-service") { r ->
-                r.path("/api/tenants/**")
+            .route("tenant-service-tenants") { r ->
+                r.path("/api/v1/tenants/**")
                     .filters { f ->
                         f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
                     }
-                    .uri("lb://TENANT-SERVICE")
+                    .uri("lb://WMS-TENANT-SERVICE")
+            }
+            .route("tenant-service-user-roles") { r ->
+                r.path("/api/v1/user-role-mappings/**")
+                    .filters { f ->
+                        f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
+                    }
+                    .uri("lb://WMS-TENANT-SERVICE")
+            }
+            .route("tenant-service-settings") { r ->
+                r.path("/api/v1/tenant-settings/**")
+                    .filters { f ->
+                        f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
+                    }
+                    .uri("lb://WMS-TENANT-SERVICE")
             }
             .route("warehouse-service") { r ->
-                r.path("/api/warehouses/**")
+                r.path("/api/v1/warehouses/**")
                     .filters { f ->
                         f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
                     }
-                    .uri("lb://WAREHOUSE-SERVICE")
+                    .uri("lb://WMS-WAREHOUSE-SERVICE")
             }
             .route("product-service") { r ->
-                r.path("/api/products/**")
+                r.path("/api/v1/products/**")
                     .filters { f ->
                         f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
                     }
-                    .uri("lb://PRODUCT-SERVICE")
+                    .uri("lb://WMS-PRODUCT-SERVICE")
             }
             .route("inventory-service") { r ->
-                r.path("/api/inventory/**")
+                r.path("/api/v1/inventory/**")
                     .filters { f ->
                         f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
                     }
-                    .uri("lb://INVENTORY-SERVICE")
+                    .uri("lb://WMS-INVENTORY-SERVICE")
             }
             .route("order-service") { r ->
-                r.path("/api/orders/**")
+                r.path("/api/v1/orders/**")
                     .filters { f ->
                         f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
                     }
-                    .uri("lb://ORDER-SERVICE")
+                    .uri("lb://WMS-ORDER-SERVICE")
             }
             .route("health-check") { r ->
-                r.path("/health/**")
-                    .uri("lb://HEALTH-SERVICE")
+                r.path("/actuator/health/**")
+                    .uri("lb://WMS-TENANT-SERVICE")
             }
             .build()
     }
