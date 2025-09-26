@@ -23,16 +23,44 @@ spring:
           predicates:
             - Path=/api/v1/user-role-mappings/**
         # Warehouse Service Routes
-        - id: warehouse-service
+        - id: warehouse-service-warehouses
           uri: lb://WMS-WAREHOUSE-SERVICE
           predicates:
             - Path=/api/v1/warehouses/**
+        - id: warehouse-service-bins
+          uri: lb://WMS-WAREHOUSE-SERVICE
+          predicates:
+            - Path=/api/v1/bins/**
+        - id: warehouse-service-floors
+          uri: lb://WMS-WAREHOUSE-SERVICE
+          predicates:
+            - Path=/api/v1/floors/**
+        - id: warehouse-service-zones
+          uri: lb://WMS-WAREHOUSE-SERVICE
+          predicates:
+            - Path=/api/v1/zones/**
+        - id: warehouse-service-aisles
+          uri: lb://WMS-WAREHOUSE-SERVICE
+          predicates:
+            - Path=/api/v1/aisles/**
+        - id: warehouse-service-racks
+          uri: lb://WMS-WAREHOUSE-SERVICE
+          predicates:
+            - Path=/api/v1/racks/**
+        - id: warehouse-service-shelves
+          uri: lb://WMS-WAREHOUSE-SERVICE
+          predicates:
+            - Path=/api/v1/shelves/**
         # Product Service Routes
         - id: product-service
           uri: lb://WMS-PRODUCT-SERVICE
           predicates:
             - Path=/api/v1/products/**
         # Inventory Service Routes
+        - id: inventory-service-storage-items
+          uri: lb://WMS-INVENTORY-SERVICE
+          predicates:
+            - Path=/api/v1/storage-items/**
         - id: inventory-service
           uri: lb://WMS-INVENTORY-SERVICE
           predicates:
@@ -42,6 +70,11 @@ spring:
           uri: lb://WMS-ORDER-SERVICE
           predicates:
             - Path=/api/v1/orders/**
+        # File Service Routes
+        - id: file-service
+          uri: lb://WMS-FILE-SERVICE
+          predicates:
+            - Path=/api/v1/files/**
 
 eureka:
   client:

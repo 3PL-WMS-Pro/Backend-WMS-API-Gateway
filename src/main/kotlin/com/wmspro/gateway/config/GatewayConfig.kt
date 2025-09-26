@@ -47,6 +47,13 @@ class GatewayConfig(private val jwtFilter: JwtAuthenticationFilter) {
                     }
                     .uri("lb://WMS-PRODUCT-SERVICE")
             }
+            .route("inventory-service-storage-items") { r ->
+                r.path("/api/v1/storage-items/**")
+                    .filters { f ->
+                        f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
+                    }
+                    .uri("lb://WMS-INVENTORY-SERVICE")
+            }
             .route("inventory-service") { r ->
                 r.path("/api/v1/inventory/**")
                     .filters { f ->
@@ -60,6 +67,13 @@ class GatewayConfig(private val jwtFilter: JwtAuthenticationFilter) {
                         f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
                     }
                     .uri("lb://WMS-ORDER-SERVICE")
+            }
+            .route("file-service") { r ->
+                r.path("/api/v1/files/**")
+                    .filters { f ->
+                        f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
+                    }
+                    .uri("lb://WMS-FILE-SERVICE")
             }
             .route("health-check") { r ->
                 r.path("/actuator/health/**")
