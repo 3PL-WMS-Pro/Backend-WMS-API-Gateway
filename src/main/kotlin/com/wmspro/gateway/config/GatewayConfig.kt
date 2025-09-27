@@ -117,6 +117,20 @@ class GatewayConfig(private val jwtFilter: JwtAuthenticationFilter) {
                     }
                     .uri("lb://WMS-FILE-SERVICE")
             }
+            .route("qc-service-stock-verification") { r ->
+                r.path("/api/v1/stock-verification-requests/**")
+                    .filters { f ->
+                        f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
+                    }
+                    .uri("lb://WMS-QC-SERVICE")
+            }
+            .route("task-service") { r ->
+                r.path("/api/v1/tasks/**")
+                    .filters { f ->
+                        f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
+                    }
+                    .uri("lb://WMS-TASK-SERVICE")
+            }
             .route("health-check") { r ->
                 r.path("/actuator/health/**")
                     .uri("lb://WMS-TENANT-SERVICE")

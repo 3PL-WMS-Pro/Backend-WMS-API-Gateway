@@ -75,6 +75,16 @@ spring:
           uri: lb://WMS-FILE-SERVICE
           predicates:
             - Path=/api/v1/files/**
+        # QC Service Routes
+        - id: qc-service-stock-verification
+          uri: lb://WMS-QC-SERVICE
+          predicates:
+            - Path=/api/v1/stock-verification-requests/**
+        # Task Service Routes
+        - id: task-service
+          uri: lb://WMS-TASK-SERVICE
+          predicates:
+            - Path=/api/v1/tasks/**
 
 eureka:
   client:
