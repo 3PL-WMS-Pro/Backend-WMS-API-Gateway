@@ -22,15 +22,11 @@ spring:
           uri: lb://WMS-TENANT-SERVICE
           predicates:
             - Path=/api/v1/user-role-mappings/**
-        # Warehouse Service Routes
+        # Warehouse Service Routes - Hierarchical order
         - id: warehouse-service-warehouses
           uri: lb://WMS-WAREHOUSE-SERVICE
           predicates:
             - Path=/api/v1/warehouses/**
-        - id: warehouse-service-bins
-          uri: lb://WMS-WAREHOUSE-SERVICE
-          predicates:
-            - Path=/api/v1/bins/**
         - id: warehouse-service-floors
           uri: lb://WMS-WAREHOUSE-SERVICE
           predicates:
@@ -51,6 +47,10 @@ spring:
           uri: lb://WMS-WAREHOUSE-SERVICE
           predicates:
             - Path=/api/v1/shelves/**
+        - id: warehouse-service-bins
+          uri: lb://WMS-WAREHOUSE-SERVICE
+          predicates:
+            - Path=/api/v1/bins/**
         # Product Service Routes
         - id: product-service
           uri: lb://WMS-PRODUCT-SERVICE

@@ -33,8 +33,50 @@ class GatewayConfig(private val jwtFilter: JwtAuthenticationFilter) {
                     }
                     .uri("lb://WMS-TENANT-SERVICE")
             }
-            .route("warehouse-service") { r ->
+            .route("warehouse-service-warehouses") { r ->
                 r.path("/api/v1/warehouses/**")
+                    .filters { f ->
+                        f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
+                    }
+                    .uri("lb://WMS-WAREHOUSE-SERVICE")
+            }
+            .route("warehouse-service-floors") { r ->
+                r.path("/api/v1/floors/**")
+                    .filters { f ->
+                        f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
+                    }
+                    .uri("lb://WMS-WAREHOUSE-SERVICE")
+            }
+            .route("warehouse-service-zones") { r ->
+                r.path("/api/v1/zones/**")
+                    .filters { f ->
+                        f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
+                    }
+                    .uri("lb://WMS-WAREHOUSE-SERVICE")
+            }
+            .route("warehouse-service-aisles") { r ->
+                r.path("/api/v1/aisles/**")
+                    .filters { f ->
+                        f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
+                    }
+                    .uri("lb://WMS-WAREHOUSE-SERVICE")
+            }
+            .route("warehouse-service-racks") { r ->
+                r.path("/api/v1/racks/**")
+                    .filters { f ->
+                        f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
+                    }
+                    .uri("lb://WMS-WAREHOUSE-SERVICE")
+            }
+            .route("warehouse-service-shelves") { r ->
+                r.path("/api/v1/shelves/**")
+                    .filters { f ->
+                        f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
+                    }
+                    .uri("lb://WMS-WAREHOUSE-SERVICE")
+            }
+            .route("warehouse-service-bins") { r ->
+                r.path("/api/v1/bins/**")
                     .filters { f ->
                         f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
                     }
