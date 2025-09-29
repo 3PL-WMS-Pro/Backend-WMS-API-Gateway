@@ -85,6 +85,15 @@ spring:
           uri: lb://WMS-TASK-SERVICE
           predicates:
             - Path=/api/v1/tasks/**
+        # Inbound Service Routes
+        - id: inbound-service-asns
+          uri: lb://WMS-INBOUND-SERVICE
+          predicates:
+            - Path=/api/v1/asns/**
+        - id: inbound-service-receiving-records
+          uri: lb://WMS-INBOUND-SERVICE
+          predicates:
+            - Path=/api/v1/receiving-records/**
 
 eureka:
   client:
