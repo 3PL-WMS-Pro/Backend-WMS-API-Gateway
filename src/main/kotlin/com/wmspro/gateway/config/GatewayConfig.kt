@@ -124,6 +124,13 @@ class GatewayConfig(private val jwtFilter: JwtAuthenticationFilter) {
                     }
                     .uri("lb://WMS-QC-SERVICE")
             }
+            .route("task-service-receiving-tasks") { r ->
+                r.path("/api/v1/receiving-tasks/**")
+                    .filters { f ->
+                        f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
+                    }
+                    .uri("lb://WMS-TASK-SERVICE")
+            }
             .route("task-service") { r ->
                 r.path("/api/v1/tasks/**")
                     .filters { f ->

@@ -81,6 +81,10 @@ spring:
           predicates:
             - Path=/api/v1/stock-verification-requests/**
         # Task Service Routes
+        - id: task-service-receiving-tasks
+          uri: lb://WMS-TASK-SERVICE
+          predicates:
+            - Path=/api/v1/receiving-tasks/**
         - id: task-service
           uri: lb://WMS-TASK-SERVICE
           predicates:
