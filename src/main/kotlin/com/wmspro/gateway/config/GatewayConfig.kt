@@ -18,7 +18,8 @@ class GatewayConfig(private val jwtFilter: JwtAuthenticationFilter) {
         corsConfig.allowedOrigins = listOf(
             "http://localhost:3000",
             "http://localhost:5173",
-            "http://localhost:3001"
+            "http://localhost:3001",
+            "https://wms.leadtorev.com"
         )
         corsConfig.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
         corsConfig.allowedHeaders = listOf("*")
