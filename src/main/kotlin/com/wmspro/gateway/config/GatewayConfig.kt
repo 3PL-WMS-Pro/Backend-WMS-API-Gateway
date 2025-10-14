@@ -5,9 +5,31 @@ import org.springframework.cloud.gateway.route.RouteLocator
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.web.cors.CorsConfiguration
+import org.springframework.web.cors.reactive.CorsWebFilter
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
 
 @Configuration
 class GatewayConfig(private val jwtFilter: JwtAuthenticationFilter) {
+
+    @Bean
+    fun corsWebFilter(): CorsWebFilter {
+        val corsConfig = CorsConfiguration()
+        corsConfig.allowedOrigins = listOf(
+            "http://localhost:3000",
+            "http://localhost:5173",
+            "http://localhost:3001"
+        )
+        corsConfig.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
+        corsConfig.allowedHeaders = listOf("*")
+        corsConfig.allowCredentials = true
+        corsConfig.maxAge = 3600L
+
+        val source = UrlBasedCorsConfigurationSource()
+        source.registerCorsConfiguration("/**", corsConfig)
+
+        return CorsWebFilter(source)
+    }
     
     @Bean
     fun customRouteLocator(builder: RouteLocatorBuilder): RouteLocator {
