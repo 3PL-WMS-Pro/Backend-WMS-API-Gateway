@@ -112,6 +112,13 @@ class GatewayConfig(private val jwtFilter: JwtAuthenticationFilter) {
                     }
                     .uri("lb://WMS-PRODUCT-SERVICE")
             }
+            .route("inventory-service-barcode-requests") { r ->
+                r.path("/api/v1/barcode-requests/**")
+                    .filters { f ->
+                        f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
+                    }
+                    .uri("lb://WMS-INVENTORY-SERVICE")
+            }
             .route("inventory-service-storage-items") { r ->
                 r.path("/api/v1/storage-items/**")
                     .filters { f ->
