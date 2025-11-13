@@ -61,10 +61,18 @@ spring:
           uri: lb://WMS-INVENTORY-SERVICE
           predicates:
             - Path=/api/v1/barcode-requests/**
+        - id: inventory-service-barcode-reservations
+          uri: lb://WMS-INVENTORY-SERVICE
+          predicates:
+            - Path=/api/v1/barcode-reservations/**
         - id: inventory-service-storage-items
           uri: lb://WMS-INVENTORY-SERVICE
           predicates:
             - Path=/api/v1/storage-items/**
+        - id: inventory-service-quantity-inventory
+          uri: lb://WMS-INVENTORY-SERVICE
+          predicates:
+            - Path=/api/v1/quantity-inventory/**
         - id: inventory-service
           uri: lb://WMS-INVENTORY-SERVICE
           predicates:
