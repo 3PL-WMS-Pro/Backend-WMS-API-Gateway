@@ -22,6 +22,10 @@ spring:
           uri: lb://WMS-TENANT-SERVICE
           predicates:
             - Path=/api/v1/user-role-mappings/**
+        - id: tenant-service-document-templates
+          uri: lb://WMS-TENANT-SERVICE
+          predicates:
+            - Path=/api/v1/document-templates/**
         # Warehouse Service Routes - Hierarchical order
         - id: warehouse-service-warehouses
           uri: lb://WMS-WAREHOUSE-SERVICE

@@ -56,6 +56,13 @@ class GatewayConfig(private val jwtFilter: JwtAuthenticationFilter) {
                     }
                     .uri("lb://WMS-TENANT-SERVICE")
             }
+            .route("tenant-service-document-templates") { r ->
+                r.path("/api/v1/document-templates/**")
+                    .filters { f ->
+                        f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
+                    }
+                    .uri("lb://WMS-TENANT-SERVICE")
+            }
             .route("warehouse-service-warehouses") { r ->
                 r.path("/api/v1/warehouses/**")
                     .filters { f ->
