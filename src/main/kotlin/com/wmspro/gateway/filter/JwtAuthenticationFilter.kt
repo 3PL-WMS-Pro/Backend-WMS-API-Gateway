@@ -44,15 +44,17 @@ class JwtAuthenticationFilter(
                     return@GatewayFilter onError(exchange, "Invalid or expired token", HttpStatus.UNAUTHORIZED)
                 }
 
-                // Extract claims (FreighAi JWTs use `tenant_id`/`sub`/`email`; legacy
-                // leadtorev JWTs used `clientId`/`userTypeId`/`departmentId`. We try both
-                // claim sets and only set headers when a value is actually present so we
-                // don't clobber the X-Client header the frontend continues to send).
+                // Extract claims. Legacy leadtorev JWTs had `clientId`/`userTypeId`/
+                // `departmentId`; FreighAi JWTs have only `sub`/`email`/`role` plus a
+                // `tenant_id` STRING (e.g. "tenant_c9d375a64417") that's incompatible with
+                // the WMS backend's Long-typed X-Tenant-Id contract. We deliberately do
+                // NOT fall back to FreighAi's `tenant_id` — instead we let the frontend's
+                // own X-Tenant-Id / X-Client header (Long, e.g. "199") pass through
+                // untouched (see the no-clobber `if` blocks below).
                 val username = jwtService.extractUsername(token)
                 val userType = jwtService.extractClaim(token, "userTypeId")?.toString()
                 val departmentId = jwtService.extractClaim(token, "departmentId")?.toString()
                 val tenantId = jwtService.extractClaim(token, "clientId")?.toString()
-                    ?: jwtService.extractClaim(token, "tenant_id")?.toString()
 
                 log.debug(
                     "[GW][{} {}] Authenticated user. userId={}, userType={}, departmentId={}, tenantId={}",
