@@ -44,24 +44,28 @@ class JwtAuthenticationFilter(
                     return@GatewayFilter onError(exchange, "Invalid or expired token", HttpStatus.UNAUTHORIZED)
                 }
 
-                // Extract claims
+                // Extract claims (FreighAi JWTs use `tenant_id`/`sub`/`email`; legacy
+                // leadtorev JWTs used `clientId`/`userTypeId`/`departmentId`. We try both
+                // claim sets and only set headers when a value is actually present so we
+                // don't clobber the X-Client header the frontend continues to send).
                 val username = jwtService.extractUsername(token)
                 val userType = jwtService.extractClaim(token, "userTypeId")?.toString()
                 val departmentId = jwtService.extractClaim(token, "departmentId")?.toString()
                 val tenantId = jwtService.extractClaim(token, "clientId")?.toString()
+                    ?: jwtService.extractClaim(token, "tenant_id")?.toString()
 
                 log.debug(
                     "[GW][{} {}] Authenticated user. userId={}, userType={}, departmentId={}, tenantId={}",
                     method, path, username, userType, departmentId, tenantId
                 )
 
-                val mutatedRequest = exchange.request.mutate()
-                    .header("X-User-Id", username ?: "")
-                    .header("X-User-Type", userType ?: "")
-                    .header("X-Department-Id", departmentId ?: "")
-                    .header("X-Tenant-Id", tenantId ?: "")
-                    .header("Authorization", authHeader) // Pass the token to downstream services
-                    .build()
+                val mutatedRequest = exchange.request.mutate().apply {
+                    if (!username.isNullOrBlank()) header("X-User-Id", username)
+                    if (!userType.isNullOrBlank()) header("X-User-Type", userType)
+                    if (!departmentId.isNullOrBlank()) header("X-Department-Id", departmentId)
+                    if (!tenantId.isNullOrBlank()) header("X-Tenant-Id", tenantId)
+                    header("Authorization", authHeader) // Pass the token to downstream services
+                }.build()
 
                 chain.filter(exchange.mutate().request(mutatedRequest).build())
             } catch (e: Exception) {

@@ -35,6 +35,30 @@ class GatewayConfig(private val jwtFilter: JwtAuthenticationFilter) {
     @Bean
     fun customRouteLocator(builder: RouteLocatorBuilder): RouteLocator {
         return builder.routes()
+            // ─────────────────────────────────────────────────────────────────
+            // Phase 5 wrapper routes — login is public; everything else under
+            // /users/** and /clients/** requires a valid (FreighAi) JWT.
+            // The /users/login route MUST be declared BEFORE /users/** so its
+            // more specific match wins.
+            // ─────────────────────────────────────────────────────────────────
+            .route("tenant-service-auth-login") { r ->
+                r.path("/users/login")
+                    .uri("lb://WMS-TENANT-SERVICE")
+            }
+            .route("tenant-service-users") { r ->
+                r.path("/users/**")
+                    .filters { f ->
+                        f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
+                    }
+                    .uri("lb://WMS-TENANT-SERVICE")
+            }
+            .route("tenant-service-clients") { r ->
+                r.path("/clients/**")
+                    .filters { f ->
+                        f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
+                    }
+                    .uri("lb://WMS-TENANT-SERVICE")
+            }
             .route("tenant-service-tenants") { r ->
                 r.path("/api/v1/tenants/**")
                     .filters { f ->
