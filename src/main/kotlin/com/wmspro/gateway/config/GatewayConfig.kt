@@ -87,6 +87,53 @@ class GatewayConfig(private val jwtFilter: JwtAuthenticationFilter) {
                     }
                     .uri("lb://WMS-TENANT-SERVICE")
             }
+            // ─────────────────────────────────────────────────────────────────
+            // WMS Billing routes (Phases 1-10) — all hosted by Tenant Service
+            // under com.wmspro.tenant.billing.* package. JWT-required like the
+            // other authenticated tenant-service paths.
+            // ─────────────────────────────────────────────────────────────────
+            .route("tenant-service-service-catalog") { r ->
+                r.path("/api/v1/service-catalog/**")
+                    .filters { f ->
+                        f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
+                    }
+                    .uri("lb://WMS-TENANT-SERVICE")
+            }
+            .route("tenant-service-billing-profiles") { r ->
+                r.path("/api/v1/billing-profiles/**")
+                    .filters { f ->
+                        f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
+                    }
+                    .uri("lb://WMS-TENANT-SERVICE")
+            }
+            .route("tenant-service-service-logs") { r ->
+                r.path("/api/v1/service-logs/**")
+                    .filters { f ->
+                        f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
+                    }
+                    .uri("lb://WMS-TENANT-SERVICE")
+            }
+            .route("tenant-service-billing-runs") { r ->
+                r.path("/api/v1/billing-runs/**")
+                    .filters { f ->
+                        f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
+                    }
+                    .uri("lb://WMS-TENANT-SERVICE")
+            }
+            .route("tenant-service-wms-invoices") { r ->
+                r.path("/api/v1/wms-invoices/**")
+                    .filters { f ->
+                        f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
+                    }
+                    .uri("lb://WMS-TENANT-SERVICE")
+            }
+            .route("tenant-service-freighai-proxy") { r ->
+                r.path("/api/v1/freighai/**")
+                    .filters { f ->
+                        f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
+                    }
+                    .uri("lb://WMS-TENANT-SERVICE")
+            }
             .route("warehouse-service-warehouses") { r ->
                 r.path("/api/v1/warehouses/**")
                     .filters { f ->

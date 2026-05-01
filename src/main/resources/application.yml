@@ -26,16 +26,13 @@ spring:
           uri: lb://WMS-TENANT-SERVICE
           predicates:
             - Path=/api/v1/document-templates/**
-        # Billing Routes (Phase 1+) — all hosted on Tenant Service under
-        # com.wmspro.tenant.billing.* package. See WMS-INVOICING-INTEGRATION.md §4.2.
+        # Billing Routes (WMS Phases 1-10) — all hosted on Tenant Service.
+        # Programmatic routes with JWT filter live in GatewayConfig.kt; these
+        # yml entries mirror them per project convention.
         - id: tenant-service-service-catalog
           uri: lb://WMS-TENANT-SERVICE
           predicates:
             - Path=/api/v1/service-catalog/**
-        - id: tenant-service-freighai-proxy
-          uri: lb://WMS-TENANT-SERVICE
-          predicates:
-            - Path=/api/v1/freighai/**
         - id: tenant-service-billing-profiles
           uri: lb://WMS-TENANT-SERVICE
           predicates:
@@ -52,6 +49,10 @@ spring:
           uri: lb://WMS-TENANT-SERVICE
           predicates:
             - Path=/api/v1/wms-invoices/**
+        - id: tenant-service-freighai-proxy
+          uri: lb://WMS-TENANT-SERVICE
+          predicates:
+            - Path=/api/v1/freighai/**
         # Warehouse Service Routes - Hierarchical order
         - id: warehouse-service-warehouses
           uri: lb://WMS-WAREHOUSE-SERVICE
