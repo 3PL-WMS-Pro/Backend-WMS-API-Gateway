@@ -127,6 +127,38 @@ class GatewayConfig(private val jwtFilter: JwtAuthenticationFilter) {
                     }
                     .uri("lb://WMS-TENANT-SERVICE")
             }
+            // Phase A: tenant-wide revenue defaults singleton.
+            .route("tenant-service-billing-defaults") { r ->
+                r.path("/api/v1/billing-defaults/**")
+                    .filters { f ->
+                        f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
+                    }
+                    .uri("lb://WMS-TENANT-SERVICE")
+            }
+            // Phase B: tenant-wide internal cost defaults singleton.
+            .route("tenant-service-operational-costs") { r ->
+                r.path("/api/v1/operational-costs/**")
+                    .filters { f ->
+                        f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
+                    }
+                    .uri("lb://WMS-TENANT-SERVICE")
+            }
+            // Phase C: per-shipment internal cost adjustments.
+            .route("tenant-service-movement-cost-adjustments") { r ->
+                r.path("/api/v1/movement-cost-adjustments/**")
+                    .filters { f ->
+                        f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
+                    }
+                    .uri("lb://WMS-TENANT-SERVICE")
+            }
+            // Phase D: reconciliation report endpoints.
+            .route("tenant-service-reconciliation") { r ->
+                r.path("/api/v1/reconciliation/**")
+                    .filters { f ->
+                        f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
+                    }
+                    .uri("lb://WMS-TENANT-SERVICE")
+            }
             .route("tenant-service-freighai-proxy") { r ->
                 r.path("/api/v1/freighai/**")
                     .filters { f ->

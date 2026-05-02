@@ -49,6 +49,26 @@ spring:
           uri: lb://WMS-TENANT-SERVICE
           predicates:
             - Path=/api/v1/wms-invoices/**
+        # Phase A: tenant-wide revenue defaults singleton.
+        - id: tenant-service-billing-defaults
+          uri: lb://WMS-TENANT-SERVICE
+          predicates:
+            - Path=/api/v1/billing-defaults/**
+        # Phase B: tenant-wide internal cost defaults singleton.
+        - id: tenant-service-operational-costs
+          uri: lb://WMS-TENANT-SERVICE
+          predicates:
+            - Path=/api/v1/operational-costs/**
+        # Phase C: per-shipment internal cost adjustments (movement).
+        - id: tenant-service-movement-cost-adjustments
+          uri: lb://WMS-TENANT-SERVICE
+          predicates:
+            - Path=/api/v1/movement-cost-adjustments/**
+        # Phase D: reconciliation report + CSV export.
+        - id: tenant-service-reconciliation
+          uri: lb://WMS-TENANT-SERVICE
+          predicates:
+            - Path=/api/v1/reconciliation/**
         - id: tenant-service-freighai-proxy
           uri: lb://WMS-TENANT-SERVICE
           predicates:
