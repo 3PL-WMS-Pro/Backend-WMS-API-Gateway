@@ -1,6 +1,8 @@
 package com.wmspro.gateway.config
 
 import com.wmspro.gateway.filter.JwtAuthenticationFilter
+import com.wmspro.gateway.filter.PortalJwtAuthenticationFilter
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.cloud.gateway.route.RouteLocator
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder
 import org.springframework.context.annotation.Bean
@@ -10,7 +12,16 @@ import org.springframework.web.cors.reactive.CorsWebFilter
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
 
 @Configuration
-class GatewayConfig(private val jwtFilter: JwtAuthenticationFilter) {
+class GatewayConfig(
+    private val jwtFilter: JwtAuthenticationFilter,
+    private val portalJwtFilter: PortalJwtAuthenticationFilter,
+    /**
+     * Customer-portal origin(s). Env-driven because the final hostname (leadtorev vs freighai) is
+     * still undecided; the local default covers `bun run dev`.
+     */
+    @Value("\${portal.cors.allowed-origins:http://localhost:3100}")
+    private val portalAllowedOrigins: String
+) {
 
     @Bean
     fun corsWebFilter(): CorsWebFilter {
@@ -20,7 +31,7 @@ class GatewayConfig(private val jwtFilter: JwtAuthenticationFilter) {
             "http://localhost:5173",
             "http://localhost:3001",
             "https://wms.leadtorev.com"
-        )
+        ) + portalAllowedOrigins.split(',').map { it.trim() }.filter { it.isNotBlank() }
         corsConfig.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
         corsConfig.allowedHeaders = listOf("*")
         corsConfig.allowCredentials = true
@@ -35,6 +46,53 @@ class GatewayConfig(private val jwtFilter: JwtAuthenticationFilter) {
     @Bean
     fun customRouteLocator(builder: RouteLocatorBuilder): RouteLocator {
         return builder.routes()
+            // ─────────────────────────────────────────────────────────────────
+            // CUSTOMER PORTAL
+            //
+            // Declared FIRST so the specific portal paths win over the generic
+            // ones below. Three distinct classes, each with different auth:
+            //
+            //   1. auth + workspace  → public. Headers stripped, no token needed.
+            //   2. admin             → STAFF token (FreighAi), for the internal
+            //                          WMS "Portal Users" screen.
+            //   3. everything else   → PORTAL token, validated against a
+            //                          SEPARATE secret with pinned iss/aud.
+            //
+            // The portal filter STRIPS every inbound identity and tenant header.
+            // Customers are external parties who can craft any header they like;
+            // the portal service derives tenant and accounts from the signed
+            // token alone. This is the one namespace in the whole gateway that
+            // does not trust X-Tenant-Id.
+            // ─────────────────────────────────────────────────────────────────
+            .route("customer-portal-auth-public") { r ->
+                r.path(
+                    "/api/v1/customer-portal/auth/login",
+                    "/api/v1/customer-portal/auth/refresh",
+                    "/api/v1/customer-portal/auth/logout",
+                    "/api/v1/customer-portal/auth/forgot-password",
+                    "/api/v1/customer-portal/auth/reset-password",
+                    "/api/v1/customer-portal/auth/accept-invitation"
+                )
+                    .filters { f -> f.filter(portalJwtFilter.stripOnly()) }
+                    .uri("lb://WMS-CUSTOMER-PORTAL-SERVICE")
+            }
+            .route("customer-portal-workspace-public") { r ->
+                // Pre-auth tenant branding for the login screen.
+                r.path("/api/v1/customer-portal/workspace/**")
+                    .filters { f -> f.filter(portalJwtFilter.stripOnly()) }
+                    .uri("lb://WMS-CUSTOMER-PORTAL-SERVICE")
+            }
+            .route("customer-portal-admin-staff") { r ->
+                // Staff-facing. Uses the STAFF filter — these callers hold FreighAi tokens.
+                r.path("/api/v1/customer-portal/admin/**")
+                    .filters { f -> f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config())) }
+                    .uri("lb://WMS-CUSTOMER-PORTAL-SERVICE")
+            }
+            .route("customer-portal") { r ->
+                r.path("/api/v1/customer-portal/**")
+                    .filters { f -> f.filter(portalJwtFilter.apply(PortalJwtAuthenticationFilter.Config())) }
+                    .uri("lb://WMS-CUSTOMER-PORTAL-SERVICE")
+            }
             // ─────────────────────────────────────────────────────────────────
             // Phase 5 wrapper routes — the three auth endpoints are public;
             // everything else under /users/** and /clients/** requires a valid

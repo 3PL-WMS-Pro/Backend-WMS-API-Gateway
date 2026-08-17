@@ -8,159 +8,39 @@ spring:
     web-application-type: reactive
   cloud:
     gateway:
-      routes:
-        # Tenant Service Routes
-        - id: tenant-service-tenants
-          uri: lb://WMS-TENANT-SERVICE
-          predicates:
-            - Path=/api/v1/tenants/**
-        - id: tenant-service-tenant-settings
-          uri: lb://WMS-TENANT-SERVICE
-          predicates:
-            - Path=/api/v1/tenant-settings/**
-        - id: tenant-service-user-role-mappings
-          uri: lb://WMS-TENANT-SERVICE
-          predicates:
-            - Path=/api/v1/user-role-mappings/**
-        - id: tenant-service-document-templates
-          uri: lb://WMS-TENANT-SERVICE
-          predicates:
-            - Path=/api/v1/document-templates/**
-        # Billing Routes (WMS Phases 1-10) — all hosted on Tenant Service.
-        # Programmatic routes with JWT filter live in GatewayConfig.kt; these
-        # yml entries mirror them per project convention.
-        - id: tenant-service-service-catalog
-          uri: lb://WMS-TENANT-SERVICE
-          predicates:
-            - Path=/api/v1/service-catalog/**
-        - id: tenant-service-billing-profiles
-          uri: lb://WMS-TENANT-SERVICE
-          predicates:
-            - Path=/api/v1/billing-profiles/**
-        - id: tenant-service-service-logs
-          uri: lb://WMS-TENANT-SERVICE
-          predicates:
-            - Path=/api/v1/service-logs/**
-        - id: tenant-service-billing-runs
-          uri: lb://WMS-TENANT-SERVICE
-          predicates:
-            - Path=/api/v1/billing-runs/**
-        - id: tenant-service-wms-invoices
-          uri: lb://WMS-TENANT-SERVICE
-          predicates:
-            - Path=/api/v1/wms-invoices/**
-        # Phase A: tenant-wide revenue defaults singleton.
-        - id: tenant-service-billing-defaults
-          uri: lb://WMS-TENANT-SERVICE
-          predicates:
-            - Path=/api/v1/billing-defaults/**
-        # Phase B: tenant-wide internal cost defaults singleton.
-        - id: tenant-service-operational-costs
-          uri: lb://WMS-TENANT-SERVICE
-          predicates:
-            - Path=/api/v1/operational-costs/**
-        # Phase C: per-shipment internal cost adjustments (movement).
-        - id: tenant-service-movement-cost-adjustments
-          uri: lb://WMS-TENANT-SERVICE
-          predicates:
-            - Path=/api/v1/movement-cost-adjustments/**
-        # Phase D: reconciliation report + CSV export.
-        - id: tenant-service-reconciliation
-          uri: lb://WMS-TENANT-SERVICE
-          predicates:
-            - Path=/api/v1/reconciliation/**
-        - id: tenant-service-freighai-proxy
-          uri: lb://WMS-TENANT-SERVICE
-          predicates:
-            - Path=/api/v1/freighai/**
-        # Warehouse Service Routes - Hierarchical order
-        - id: warehouse-service-warehouses
-          uri: lb://WMS-WAREHOUSE-SERVICE
-          predicates:
-            - Path=/api/v1/warehouses/**
-        - id: warehouse-service-floors
-          uri: lb://WMS-WAREHOUSE-SERVICE
-          predicates:
-            - Path=/api/v1/floors/**
-        - id: warehouse-service-zones
-          uri: lb://WMS-WAREHOUSE-SERVICE
-          predicates:
-            - Path=/api/v1/zones/**
-        - id: warehouse-service-aisles
-          uri: lb://WMS-WAREHOUSE-SERVICE
-          predicates:
-            - Path=/api/v1/aisles/**
-        - id: warehouse-service-racks
-          uri: lb://WMS-WAREHOUSE-SERVICE
-          predicates:
-            - Path=/api/v1/racks/**
-        - id: warehouse-service-shelves
-          uri: lb://WMS-WAREHOUSE-SERVICE
-          predicates:
-            - Path=/api/v1/shelves/**
-        - id: warehouse-service-bins
-          uri: lb://WMS-WAREHOUSE-SERVICE
-          predicates:
-            - Path=/api/v1/bins/**
-        # Product Service Routes
-        - id: product-service
-          uri: lb://WMS-PRODUCT-SERVICE
-          predicates:
-            - Path=/api/v1/products/**
-        # Inventory Service Routes
-        - id: inventory-service-barcode-requests
-          uri: lb://WMS-INVENTORY-SERVICE
-          predicates:
-            - Path=/api/v1/barcode-requests/**
-        - id: inventory-service-barcode-reservations
-          uri: lb://WMS-INVENTORY-SERVICE
-          predicates:
-            - Path=/api/v1/barcode-reservations/**
-        - id: inventory-service-storage-items
-          uri: lb://WMS-INVENTORY-SERVICE
-          predicates:
-            - Path=/api/v1/storage-items/**
-        - id: inventory-service-quantity-inventory
-          uri: lb://WMS-INVENTORY-SERVICE
-          predicates:
-            - Path=/api/v1/quantity-inventory/**
-        - id: inventory-service
-          uri: lb://WMS-INVENTORY-SERVICE
-          predicates:
-            - Path=/api/v1/inventory/**
-        # Order Service Routes
-        - id: order-service
-          uri: lb://WMS-ORDER-SERVICE
-          predicates:
-            - Path=/api/v1/orders/**
-        # File Service Routes
-        - id: file-service
-          uri: lb://WMS-FILE-SERVICE
-          predicates:
-            - Path=/api/v1/files/**
-        # QC Service Routes
-        - id: qc-service-stock-verification
-          uri: lb://WMS-QC-SERVICE
-          predicates:
-            - Path=/api/v1/stock-verification-requests/**
-        # Task Service Routes
-        - id: task-service-receiving-tasks
-          uri: lb://WMS-TASK-SERVICE
-          predicates:
-            - Path=/api/v1/receiving-tasks/**
-        - id: task-service
-          uri: lb://WMS-TASK-SERVICE
-          predicates:
-            - Path=/api/v1/tasks/**
-        # Inbound Service Routes
-        - id: inbound-service-asns
-          uri: lb://WMS-INBOUND-SERVICE
-          predicates:
-            - Path=/api/v1/asns/**
-        - id: inbound-service-receiving-records
-          uri: lb://WMS-INBOUND-SERVICE
-          predicates:
-            - Path=/api/v1/receiving-records/**
+      # ─────────────────────────────────────────────────────────────────────
+      # Routes are defined EXCLUSIVELY in GatewayConfig.kt (customRouteLocator).
+      #
+      # This block previously mirrored 34 of those routes per an old project
+      # convention. Every one of them was a path-duplicate of a Kotlin route,
+      # but WITHOUT the `filters:` block — so each carried no JWT validation.
+      # Spring Cloud Gateway registered both sets and which one matched was
+      # decided by route ordering that nothing pinned explicitly. Production
+      # happened to favour the filtered Kotlin routes (verified: unauthenticated
+      # probes returned 401), but a Boot upgrade, a config reshuffle, or someone
+      # adding `order:` to a yml route could have silently disabled auth across
+      # most of the API with no error and no log line.
+      #
+      # Verified before removal: all 34 yml route ids mapped to paths already
+      # covered by GatewayConfig.kt. Two looked yml-only by id
+      # (tenant-service-tenant-settings, tenant-service-user-role-mappings) but
+      # resolve to the same paths as the Kotlin tenant-service-settings and
+      # tenant-service-user-roles. Nothing was lost.
+      #
+      # Do not re-add routes here. One source of truth.
+      # ─────────────────────────────────────────────────────────────────────
+      default-filters: []
+
+portal:
+  jwt:
+    # MUST match wms-customer-portal-service's `portal.jwt.secret`, and MUST differ from
+    # `jwt.secret`. If the two were the same, a customer-portal token would verify against
+    # staff routes — where JwtAuthenticationFilter performs no role check and forwards
+    # X-User-Id / X-Tenant-Id straight from the claims.
+    secret: ${PORTAL_JWT_SECRET:portal-dev-only-secret-key-change-me-at-least-32-bytes}
+  cors:
+    # Comma-separated. Env-driven because the final portal hostname is still undecided.
+    allowed-origins: ${PORTAL_CORS_ORIGINS:http://localhost:3100}
 
 eureka:
   client:
