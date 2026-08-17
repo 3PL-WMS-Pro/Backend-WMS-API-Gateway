@@ -36,13 +36,35 @@ class GatewayConfig(private val jwtFilter: JwtAuthenticationFilter) {
     fun customRouteLocator(builder: RouteLocatorBuilder): RouteLocator {
         return builder.routes()
             // ─────────────────────────────────────────────────────────────────
-            // Phase 5 wrapper routes — login is public; everything else under
-            // /users/** and /clients/** requires a valid (FreighAi) JWT.
-            // The /users/login route MUST be declared BEFORE /users/** so its
-            // more specific match wins.
+            // Phase 5 wrapper routes — the three auth endpoints are public;
+            // everything else under /users/** and /clients/** requires a valid
+            // (FreighAi) JWT.
+            //
+            // These three MUST be declared BEFORE /users/** so their more
+            // specific match wins.
+            //
+            // /refresh and /logout are public by necessity, not convenience:
+            // both key off the REFRESH token, and the caller's access token has
+            // by definition already expired by the time refresh is called.
+            // Requiring a valid access token would make them unusable. FreighAi
+            // validates the refresh token itself, so possession of it is the
+            // authorisation.
+            //
+            // Any new top-level path added here must ALSO be added to
+            // TenantInterceptor.CENTRAL_DB_PATHS in wms-tenant-service — see
+            // MIGRATION.md Incident 1, where a missed interceptor registration
+            // silently wrote tenant data to the central database.
             // ─────────────────────────────────────────────────────────────────
             .route("tenant-service-auth-login") { r ->
                 r.path("/users/login")
+                    .uri("lb://WMS-TENANT-SERVICE")
+            }
+            .route("tenant-service-auth-refresh") { r ->
+                r.path("/users/refresh")
+                    .uri("lb://WMS-TENANT-SERVICE")
+            }
+            .route("tenant-service-auth-logout") { r ->
+                r.path("/users/logout")
                     .uri("lb://WMS-TENANT-SERVICE")
             }
             .route("tenant-service-users") { r ->

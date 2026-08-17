@@ -51,7 +51,23 @@ class JwtAuthenticationFilter(
                 // NOT fall back to FreighAi's `tenant_id` — instead we let the frontend's
                 // own X-Tenant-Id / X-Client header (Long, e.g. "199") pass through
                 // untouched (see the no-clobber `if` blocks below).
-                val username = jwtService.extractUsername(token)
+                // Identity: prefer the `email` claim over `sub`.
+                //
+                // FreighAi sets `sub` to the opaque user id ("user_41a4d54161b6"), but every
+                // WMS document that records a user stores an EMAIL — Task.assignedTo,
+                // StatusHistory.changedBy, receivingStaff, pickedBy, createdBy — and
+                // UserService resolves those against FreighAi's /users/batch-by-emails to
+                // render display names.
+                //
+                // Forwarding `sub` as X-User-Id therefore broke two things: TaskService's
+                // findByAssignedTo(userId) matched nothing (empty task list + zero dashboard
+                // stats for every mobile worker), and 167 production documents were written
+                // with `user_*` values in email-typed fields between 2026-05-05 and this fix.
+                //
+                // Falling back to `sub` keeps legacy leadtorev tokens working — their subject
+                // WAS the email.
+                val userEmail = jwtService.extractClaim(token, "email")?.toString()?.takeIf { it.isNotBlank() }
+                val username = userEmail ?: jwtService.extractUsername(token)
                 val userType = jwtService.extractClaim(token, "userTypeId")?.toString()
                 val departmentId = jwtService.extractClaim(token, "departmentId")?.toString()
                 val tenantId = jwtService.extractClaim(token, "clientId")?.toString()
@@ -63,6 +79,10 @@ class JwtAuthenticationFilter(
 
                 val mutatedRequest = exchange.request.mutate().apply {
                     if (!username.isNullOrBlank()) header("X-User-Id", username)
+                    // Parity with the web client, which sends X-User-Email from localStorage.
+                    // Mobile sends no identity headers at all, so without this the billing /
+                    // admin controllers that read X-User-Email would record "unknown".
+                    if (!username.isNullOrBlank()) header("X-User-Email", username)
                     if (!userType.isNullOrBlank()) header("X-User-Type", userType)
                     if (!departmentId.isNullOrBlank()) header("X-Department-Id", departmentId)
                     if (!tenantId.isNullOrBlank()) header("X-Tenant-Id", tenantId)
