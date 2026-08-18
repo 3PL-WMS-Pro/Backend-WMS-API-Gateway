@@ -23,22 +23,54 @@ class GatewayConfig(
     private val portalAllowedOrigins: String
 ) {
 
+    /**
+     * CORS, with the customer portal scoped to its own paths.
+     *
+     * ## Why there are two configurations and not one
+     *
+     * The portal origins were originally appended to the single `CorsConfiguration` registered at
+     * the catch-all path pattern. That granted the **internet-facing** portal origin credentialed
+     * cross-origin access to
+     * every internal route the gateway fronts — `/api/v1/tenants`, `/users`, `/clients`, billing,
+     * warehouses — with `allowCredentials = true` and `allowedHeaders = ["*"]`. Verified: a
+     * preflight for `/api/v1/warehouses` from `http://localhost:3100` returned 200 with
+     * `Access-Control-Allow-Origin` echoed, while a control origin got 403.
+     *
+     * That is a much wider grant than the portal needs. Registration order matters here:
+     * `UrlBasedCorsConfigurationSource` returns the FIRST pattern that matches, so the specific
+     * portal path must be registered before the catch-all.
+     */
     @Bean
     fun corsWebFilter(): CorsWebFilter {
-        val corsConfig = CorsConfiguration()
-        corsConfig.allowedOrigins = listOf(
+        val internalOrigins = listOf(
             "http://localhost:3000",
             "http://localhost:5173",
             "http://localhost:3001",
             "https://wms.leadtorev.com"
-        ) + portalAllowedOrigins.split(',').map { it.trim() }.filter { it.isNotBlank() }
-        corsConfig.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
-        corsConfig.allowedHeaders = listOf("*")
-        corsConfig.allowCredentials = true
-        corsConfig.maxAge = 3600L
+        )
+        val portalOrigins = portalAllowedOrigins.split(',').map { it.trim() }.filter { it.isNotBlank() }
+
+        val internalConfig = CorsConfiguration().apply {
+            allowedOrigins = internalOrigins
+            allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
+            allowedHeaders = listOf("*")
+            allowCredentials = true
+            maxAge = 3600L
+        }
+
+        // The portal surface: portal origins, plus the internal ones so the staff app can still
+        // reach the /admin endpoints under this prefix.
+        val portalConfig = CorsConfiguration().apply {
+            allowedOrigins = portalOrigins + internalOrigins
+            allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
+            allowedHeaders = listOf("*")
+            allowCredentials = true
+            maxAge = 3600L
+        }
 
         val source = UrlBasedCorsConfigurationSource()
-        source.registerCorsConfiguration("/**", corsConfig)
+        source.registerCorsConfiguration("/api/v1/customer-portal/**", portalConfig)
+        source.registerCorsConfiguration("/**", internalConfig)
 
         return CorsWebFilter(source)
     }
