@@ -2,6 +2,7 @@ package com.wmspro.gateway.config
 
 import com.wmspro.gateway.filter.JwtAuthenticationFilter
 import com.wmspro.gateway.filter.PortalJwtAuthenticationFilter
+import com.wmspro.gateway.filter.BillingPermissionFilter
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.cloud.gateway.route.RouteLocator
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder
@@ -15,6 +16,7 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
 class GatewayConfig(
     private val jwtFilter: JwtAuthenticationFilter,
     private val portalJwtFilter: PortalJwtAuthenticationFilter,
+    private val billingPermissionFilter: BillingPermissionFilter,
     /**
      * Customer-portal origin(s). Env-driven because the final hostname (leadtorev vs freighai) is
      * still undecided; the local default covers `bun run dev`.
@@ -236,6 +238,14 @@ class GatewayConfig(
                 r.path("/api/v1/wms-invoices/**")
                     .filters { f ->
                         f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
+                    }
+                    .uri("lb://WMS-TENANT-SERVICE")
+            }
+            .route("tenant-service-warehouse-jobs") { r ->
+                r.path("/api/v1/warehouse-jobs/**")
+                    .filters { f ->
+                        f.filter(jwtFilter.apply(JwtAuthenticationFilter.Config()))
+                        f.filter(billingPermissionFilter.apply(BillingPermissionFilter.Config()))
                     }
                     .uri("lb://WMS-TENANT-SERVICE")
             }
