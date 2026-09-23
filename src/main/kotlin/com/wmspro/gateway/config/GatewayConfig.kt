@@ -56,6 +56,11 @@ class GatewayConfig(
             allowedOrigins = internalOrigins
             allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
             allowedHeaders = listOf("*")
+            // `allowedHeaders = *` covers what the browser may SEND, not what JS may READ back.
+            // Without this, file downloads reach the browser fine but their Content-Disposition
+            // is invisible to the app, so every exported workbook and label sheet has to be
+            // saved under a guessed filename.
+            exposedHeaders = listOf("Content-Disposition")
             allowCredentials = true
             maxAge = 3600L
         }
